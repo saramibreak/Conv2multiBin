@@ -18,7 +18,7 @@ SNK - Neo Geo CD
 Visual Studio 2017 (Visual C++ 2017)
 
 ## License
-See License.txt
+See LICENSE
 
 ## Disclaimer
 Use this tool at own your risk.
@@ -37,5 +37,5 @@ Support audio only disc
 add: Using EccEdc.exe, insert pregap sector
 
 ### 2018-04-19
-changed: LICENSE (MS-PL -> Apache License Version 2.0)
+changed: LICENSE (MS-PL -> Apache License Version 2.0)  
 changed: Visual Studio 2013 to 2017

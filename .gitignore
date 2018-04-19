@@ -1,0 +1,6 @@
+Debug/
+Release/
+ipch/
+.vs/
+Conv2multiBin.VC.*
+Conv2multiBin.vcxproj.user
