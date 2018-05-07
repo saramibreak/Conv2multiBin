@@ -452,10 +452,11 @@ int Parsefile(
 	DWORD filesizeOnArg = GetFilesize(fp);
 	DWORD filesizeOnDat = 0;
 	for (DWORD i = 1; i < gamedata->TrackNum; i++) {
-		OutputString(_T("rom name: %s, size: %ld"), gamedata->Track[i - 1], gamedata->Size[i]);
+		// i == 0 is .cue file
+		OutputString(_T("rom name: %s, size: %ld\n"), gamedata->Track[i], gamedata->Size[i]);
 		filesizeOnDat += gamedata->Size[i];
 	}
-	int nRet = TRUE;
+	BOOL bRet = TRUE;
 	BYTE headerData[16] = { 0 };
 	LPBYTE TrackData = NULL;
 	try {
@@ -616,7 +617,7 @@ int Parsefile(
 				crc32 = CalcCrc32(gamedata, TrackData, 0, i);
 				if (gamedata->Crc[i] != crc32) {
 					OutputErrorString(
-						_T("CRC32 is unmatched\n")
+						_T("Crc32 is unmatched\n")
 						_T("\tSplit data: 0x%lx, dat: 0x%lx\n")
 						_T("\tFile size: %ld(0x%lx)\n"),
 						crc32, gamedata->Crc[i], gamedata->Size[i], gamedata->Size[i]);
@@ -658,7 +659,7 @@ int Parsefile(
 					if (gamedata->Crc[i] == crc32) {
 						if (!bSucceeded) {
 							OutputString(
-								_T("\nThis image is ripped by a drive of %ld offset\n"),
+								_T("\nThis image was ripped by a drive of %ld offsets\n"),
 								roopCnt / 4 - s_writeOfs);
 						}
 						_tmakepath(binfile, drive, dir, gamedata->Track[i], NULL);
@@ -675,7 +676,7 @@ int Parsefile(
 					}
 					else if (bSucceeded && i > 2) {
 						OutputErrorString(
-							_T("\tCRC32 is unmatched. 0x%lx, on datfile: 0x%lx\n"),
+							_T("\tCrc32 is unmatched. 0x%lx, on datfile: 0x%lx\n"),
 							crc32, gamedata->Crc[i]);
 						if (i == gamedata->TrackNum - 1) {
 							OutputErrorString(
@@ -686,7 +687,7 @@ int Parsefile(
 						break;
 					}
 					OutputString(
-						_T("\rAnalizing file: idx %5ld/%5ld"), roopCnt - 1, maxCnt - 1);
+						_T("\rAnalizing file: ofs %5ld/%5ld"), roopCnt - 1, maxCnt - 1);
 					if (roopCnt == maxCnt) {
 						bEnd = true;
 						break;
@@ -706,20 +707,20 @@ int Parsefile(
 			OutputString(_T("Successed\n"));
 		}
 		else if (bSucceeded && bFailed) {
-			OutputErrorString(_T("Some of track is Corruptted or alt version\n"));
-			nRet = FALSE;
+			OutputErrorString(_T("Some of tracks are corrupt or alt version\n"));
+			bRet = FALSE;
 		}
 		else {
-			OutputErrorString(_T("Failed. image is Corruptted or alt version\n"));
-			nRet = FALSE;
+			OutputErrorString(_T("Failed. Image is corrupt or alt version\n"));
+			bRet = FALSE;
 		}
 	}
-	catch (int bErr) {
-		nRet = bErr;
+	catch (BOOL bErr) {
+		bRet = bErr;
 		FreeAndNull(TrackData);
 	}
 	FcloseAndNull(fp);
-	return nRet;
+	return bRet;
 }
 
 DWORD GetModeFromDat(
@@ -767,7 +768,7 @@ void printUsage(void)
 		_T("\t\tfilename: \"game name\" tagname written in datfile\n")
 		_T("\t\tparsefilename: img(clonecd) or bin(isobuster)\n")
 		_T("\t\twrite offset(sample): see redump.org\n")
-		_T("\t\tdrive offset(sample): offset of drive that is created img or bin. If not understand, input -1164\n"));
+		_T("\t\tdrive offset(sample): offset of drive which created img or bin. If don't know it, input -1164\n"));
 }
 
 int checkArg(int argc, _TCHAR* argv[], PEXEC_TYPE pExecType)
@@ -777,13 +778,18 @@ int checkArg(int argc, _TCHAR* argv[], PEXEC_TYPE pExecType)
 	if (argc == 6) {
 		s_writeOfs = _tcstol(argv[4], &endptr, 10);
 		if (*endptr) {
-			OutputErrorString(_T("Bad arg: %s Please integer\n"), endptr);
+			OutputErrorString(_T("Invalid argument: %s Please input integer\n"), endptr);
 			return FALSE;
 		}
 		s_driveOfs = _tcstol(argv[5], &endptr, 10);
 		if (*endptr) {
-			OutputErrorString(_T("Bad arg: %s Please integer\n"), endptr);
+			OutputErrorString(_T("Invalid argument: %s Please input integer\n"), endptr);
 			return FALSE;
+		}
+		if (s_writeOfs + s_driveOfs + MAX_DRIVE_MINUS_OFFSET < 0) {
+			OutputErrorString(
+				_T("Offsets are too small (%ld). Write offsets + drive offsets > -1165\n"), s_writeOfs + s_driveOfs)
+				return FALSE;
 		}
 		*pExecType = split;
 	}
@@ -796,19 +802,6 @@ int checkArg(int argc, _TCHAR* argv[], PEXEC_TYPE pExecType)
 
 int printSeveralInfo()
 {
-	OSVERSIONINFO OSver;
-	OSver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	if (!GetVersionEx(&OSver)) {
-		OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-		return FALSE;
-	}
-	OutputString(
-		_T("OS\n")
-		_T("\tMajorVersion: %lu, MinorVersion: %lu, BuildNumber: %lu\n")
-		_T("\tPlatformId: %lu, CSDVersion: %s\n"),
-		OSver.dwMajorVersion, OSver.dwMinorVersion, OSver.dwBuildNumber,
-		OSver.dwPlatformId, OSver.szCSDVersion);
-
 	OutputString(_T("AppVersion\n"));
 #ifdef _WIN64
 	OutputString(_T("\tx64, "));

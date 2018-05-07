@@ -1,6 +1,6 @@
 # Conv2multiBin
 ## Summary
-This program is that converts img(clonecd) or bin(isobuster) to multiple bin(redump.org).
+This program converts img(clonecd) or bin(isobuster) to multiple bin(redump.org).
 It works on Windows PC (WinXP or higher).
 
 ## Usage
@@ -39,3 +39,6 @@ add: Using EccEdc.exe, insert pregap sector
 ### 2018-04-19
 changed: LICENSE (MS-PL -> Apache License Version 2.0)  
 changed: Visual Studio 2013 to 2017
+
+### 2018-05-07
+added: error check (write offsets + drive offsets > -1165)
