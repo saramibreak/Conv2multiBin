@@ -21,6 +21,10 @@
 #include <atlstr.h>
 
 // TODO: プログラムに必要な追加ヘッダーをここで参照してください。
+#ifdef UNICODE
+#include <fcntl.h>
+#include <io.h>
+#endif
 #include <xmllite.h>
 #pragma comment(lib, "xmllite.lib")
 #pragma warning(pop)

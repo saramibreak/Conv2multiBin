@@ -88,79 +88,6 @@ VOID OutputLastErrorNumAndString(
 	LocalFree(lpMsgBuf);
 }
 
-int soundBeep(int nRet)
-{
-	if (nRet) {
-		if (!Beep(440, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // do
-		if (!Beep(494, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // re
-		if (!Beep(554, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // mi
-		if (!Beep(587, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // fa
-		if (!Beep(659, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // so
-		if (!Beep(740, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // la
-		if (!Beep(830, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // ti
-		if (!Beep(880, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // do
-	}
-	else {
-		if (!Beep(880, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // do
-		if (!Beep(830, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // ti
-		if (!Beep(740, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // la
-		if (!Beep(659, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // so
-		if (!Beep(587, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // fa
-		if (!Beep(554, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // mi
-		if (!Beep(494, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // re
-		if (!Beep(440, 200)) {
-			OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
-			return EXIT_FAILURE;
-		};   // do
-	}
-	return EXIT_SUCCESS;
-}
-
 static unsigned int table[256] = {0};
 void InitCRC32()
 {
@@ -467,7 +394,7 @@ int Parsefile(
 			DWORD pregapSize = filesizeOnDat - filesizeOnArg;
 
 			// 00:02:00 - 00:05:00
-			if (pregapSize == 352800 || pregapSize == 529200 || 
+			if (pregapSize == 176400 || pregapSize == 352800 || pregapSize == 529200 ||
 				pregapSize == 882000) {
 				OutputString(_T("Insert pregap...\n"));
 				TrackData = (LPBYTE)calloc(filesizeOnArg, sizeof(BYTE));
@@ -484,7 +411,7 @@ int Parsefile(
 				}
 				size_t writeSize = fwrite(TrackData, sizeof(BYTE), gamedata->Size[1], fpNew);
 
-				if (pregapSize == 352800) {
+				if (pregapSize == 176400 || pregapSize == 352800) {
 					for (DWORD i = 0; i < pregapSize; i++) {
 						fputc(0, fpNew);
 					}
@@ -648,9 +575,6 @@ int Parsefile(
 					OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
 					throw FALSE;
 				}
-				if (i > 1) {
-					nOffset += gamedata->Size[i - 1];
-				}
 				fseek(fp, (LONG)nOffset, SEEK_SET);
 				fread(TrackData + nZerobyte,
 					sizeof(BYTE), nDatasize - nZerobyte, fp);
@@ -697,14 +621,16 @@ int Parsefile(
 					}
 					idx++;
 				}
+
 				if (bEnd) {
 					OutputString(_T("\n"));
 					break;
 				}
 			}
+			nOffset += gamedata->Size[i];
 		}
 		if (bSucceeded && !bFailed) {
-			OutputString(_T("Successed\n"));
+			OutputString(_T("Succeeded\n"));
 		}
 		else if (bSucceeded && bFailed) {
 			OutputErrorString(_T("Some of tracks are corrupt or alt version\n"));
@@ -823,6 +749,20 @@ int _tmain(int argc, _TCHAR* argv[])
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+#ifdef UNICODE
+	if (_setmode(_fileno(stdin), _O_U8TEXT) == -1) {
+		OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
+		return EXIT_FAILURE;
+	}
+	if (_setmode(_fileno(stdout), _O_U8TEXT) == -1) {
+		OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
+		return EXIT_FAILURE;
+	}
+	if (_setmode(_fileno(stderr), _O_U8TEXT) == -1) {
+		OutputLastErrorNumAndString(_T(__FUNCTION__), __LINE__);
+		return EXIT_FAILURE;
+	}
+#endif
 	int nRet = EXIT_SUCCESS;
 	printSeveralInfo();
 	EXEC_TYPE execType;
@@ -833,7 +773,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (execType == split) {
 		nRet = execSplit(argv);
 	}
-	nRet = soundBeep(nRet);
 	return nRet == TRUE ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

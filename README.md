@@ -1,11 +1,11 @@
 # Conv2multiBin
 ## Summary
-This program converts img(clonecd) or bin(isobuster) to multiple bin(redump.org).
+This program converts img(clonecd) or bin(isobuster) to multiple bin(redump.org).  
 It works on Windows PC (WinXP or higher).
 
 ## Usage
-fix datfile[(maker) - (machine) (yyyymmdd hh-mm-ss).dat]
-	[ & ]->[ &amp; ]
+fix datfile[(maker) - (machine) (yyyymmdd hh-mm-ss).dat]  
+	[ & ]->[ &amp; ]  
 Start cmd.exe & run exe. for more information, run in no arg.
 
 ## Tested dat
@@ -42,3 +42,7 @@ changed: Visual Studio 2013 to 2017
 
 ### 2018-05-07
 added: error check (write offsets + drive offsets > -1165)
+
+### 2018-06-26
+fixed: it doesn't work if image file has multi data track  
+deleted: beep
